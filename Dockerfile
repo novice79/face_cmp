@@ -59,12 +59,6 @@ RUN echo "export VISIBLE=now" >> /etc/profile \
 ENV TZ=Asia/Chongqing
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN cd ~ && \
-    mkdir -p dlib && \
-    git clone -b 'v19.9' --single-branch https://github.com/davisking/dlib.git dlib/ && \
-    cd  dlib/ && \
-    python setup.py install --yes USE_AVX_INSTRUCTIONS  && \
-    rm -rf ~/dlib
 
 RUN pip install opencv-python pymongo flask flask_socketio face_recognition
 # WORKDIR /root/openface

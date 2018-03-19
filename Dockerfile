@@ -7,7 +7,25 @@ ENV LANG       en_US.UTF-8
 ENV LC_ALL	   "C.UTF-8"
 ENV LANGUAGE   en_US:en
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --fix-missing \
+    build-essential \
+    cmake \
+    gfortran \
+    git \
+    wget \
+    curl \
+    graphicsmagick \
+    libgraphicsmagick1-dev \
+    libatlas-dev \
+    libavcodec-dev \
+    libavformat-dev \
+    libgtk2.0-dev \
+    libjpeg-dev \
+    liblapack-dev \
+    libswscale-dev \
+    pkg-config \
+    python-dev \
+    python-numpy \
     sudo \
     python \
     python-pip \
@@ -21,8 +39,8 @@ RUN apt-get update && apt-get install -y \
     lsof initramfs-tools upstart-sysv \
     && update-initramfs -u \    
     && apt-get purge systemd -y \ 
-    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && pip install opencv-python pymongo flask flask_socketio face_recognition
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+    
 
 RUN mkdir -p /var/log/supervisor /var/log/nginx /var/run/sshd /data/apps   
 
@@ -40,7 +58,13 @@ RUN echo "export VISIBLE=now" >> /etc/profile \
 ENV TZ=Asia/Chongqing
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+RUN cd ~ && \
+    mkdir -p dlib && \
+    git clone -b 'v19.9' --single-branch https://github.com/davisking/dlib.git dlib/ && \
+    cd  dlib/ && \
+    python3 setup.py install --yes USE_AVX_INSTRUCTIONS
 
+RUN pip install opencv-python pymongo flask flask_socketio face_recognition
 # WORKDIR /root/openface
 WORKDIR /data/apps
 EXPOSE 22 1979    

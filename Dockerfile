@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV LANG       en_US.UTF-8
 ENV LC_ALL	   "C.UTF-8"
 ENV LANGUAGE   en_US:en
+COPY sources.list /etc/apt/sources.list
 
 RUN apt-get update && apt-get install -y --fix-missing \
     build-essential \
@@ -62,12 +63,14 @@ RUN cd ~ && \
     mkdir -p dlib && \
     git clone -b 'v19.9' --single-branch https://github.com/davisking/dlib.git dlib/ && \
     cd  dlib/ && \
-    python3 setup.py install --yes USE_AVX_INSTRUCTIONS
+    python setup.py install --yes USE_AVX_INSTRUCTIONS  && \
+    rm -rf ~/dlib
 
 RUN pip install opencv-python pymongo flask flask_socketio face_recognition
 # WORKDIR /root/openface
 WORKDIR /data/apps
 EXPOSE 22 1979    
 ADD ./svr/ /data/apps
+
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 CMD ["/usr/bin/supervisord"]

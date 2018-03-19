@@ -105,3 +105,4 @@ venv.bak/
 ref.txt
 bak/
 .vscode/
+secret*

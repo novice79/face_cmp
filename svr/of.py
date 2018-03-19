@@ -2,8 +2,6 @@
 
 import time
 
-start = time.time()
-
 import cv2
 import StringIO
 import urllib
@@ -12,32 +10,10 @@ import os
 from PIL import Image
 import numpy as np
 np.set_printoptions(precision=2)
-import matplotlib as mpl
-mpl.use('Agg')
-import matplotlib.pyplot as plt
 
-import openface
-curDir = os.path.dirname(os.path.realpath(__file__))
-fileDir = '/root/openface'
-modelDir = os.path.join(fileDir, 'models')
-dlibModelDir = os.path.join(modelDir, 'dlib')
-openfaceModelDir = os.path.join(modelDir, 'openface')
-
-dlibFacePredictor = os.path.join(dlibModelDir, "shape_predictor_68_face_landmarks.dat")
-networkModel = os.path.join(openfaceModelDir, 'nn4.small2.v1.t7')
-imgDim = 96
-verbose = False #True
-
-if verbose:
-    print("Argument parsing and loading libraries took {} seconds.".format(
-        time.time() - start))
 
 start = time.time()
-align = openface.AlignDlib(dlibFacePredictor)
-net = openface.TorchNeuralNet(networkModel, imgDim)
-if verbose:
-    print("Loading the dlib and OpenFace models took {} seconds.".format(
-        time.time() - start))
+
 
 def cvMatFromDataUrl(dataURL, w, h):
     head = "data:image/png;base64,"
@@ -87,59 +63,21 @@ def rectangle_face(rgbImg, bb = None):
 def cvMat2Raw(img):
     pass
 def cvMat2DataUrl(img):
-    plt.figure()
-    plt.imshow(img)
-    plt.xticks([])
-    plt.yticks([])
-
-    imgdata = StringIO.StringIO()
-    plt.savefig(imgdata, format='png')
-    imgdata.seek(0)
+    ret, buf = cv2.imencode('.png', img)
+    # imgdata = StringIO.StringIO(img_str)
     content = 'data:image/png;base64,' + \
-        urllib.quote(base64.b64encode(imgdata.buf))
-    plt.close()
+        urllib.quote(base64.b64encode(np.array(buf)))
     return content
 
-def getRep(img):
-    rgbImg = cvMatFromRaw(img['data'], img['w'], img['h'])    
-    
-    if verbose:
-        print("  + Original size: {}".format(rgbImg.shape))
+def url_to_image(url):
+	# download the image, convert it to a NumPy array, and then read
+	# it into OpenCV format
+	resp = urllib.urlopen(url)
+	image = np.asarray(bytearray(resp.read()), dtype="uint8")
+	image = cv2.imdecode(image, cv2.IMREAD_COLOR)
 
-    start = time.time()
-    bb = align.getLargestFaceBoundingBox(rgbImg)
-    if bb is None:
-        raise Exception("Unable to find a face: {}".format( img['name'] ))
-    if verbose:
-        print("  + Face detection took {} seconds.".format(time.time() - start))
-        
-    start = time.time()
-    alignedFace = align.align(imgDim, rgbImg, bb,
-                              landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
-    if alignedFace is None:
-        raise Exception("Unable to align image: {}".format( img['name'] ))
-    if verbose:
-        print("  + Face alignment took {} seconds.".format(time.time() - start))
-
-    start = time.time()
-    rep = net.forward(alignedFace)
-    if verbose:
-        print("  + OpenFace forward pass took {} seconds.".format(time.time() - start))
-        print("Representation:")
-        print(rep)
-        print("-----\n")
-    # annotate ################################
-    rectangle_face(rgbImg, bb)
-    landmark_face(rgbImg, bb)    
-    if img['name'] is not None:
-        ip = os.path.join(curDir, 'static', img['name'])
-        print("write image file to {} ".format(ip))
-        cv2.imwrite( ip, rgbImg)
-    ############################################    
-    return rep
-
+	# return the image
+	return image
 def cmp_imgs(img1, img2):
-    d = getRep(img1) - getRep(img2)
-    dis = np.dot(d, d)
-    print("  + Squared l2 distance between representations: {:0.3f}".format(dis))
-    return dis 
+
+    pass

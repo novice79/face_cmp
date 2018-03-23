@@ -60,7 +60,7 @@ ENV TZ=Asia/Chongqing
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 
-RUN pip install --upgrade pip && pip install opencv-python pymongo eventlet flask flask_socketio face_recognition
+RUN pip install --upgrade pip && pip install opencv-python pymongo eventlet flask flask_socketio pydash face_recognition
 # WORKDIR /root/openface
 WORKDIR /data/apps
 EXPOSE 22 1979    
